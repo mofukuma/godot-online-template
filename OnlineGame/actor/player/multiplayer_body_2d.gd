@@ -15,6 +15,15 @@ var bot = false
 const SPEED = 300.0
 const JUMP_VELOCITY = -400.0
 
+@onready var sprite = $Sprite
+
+@export var lerp_position : Vector2
+
+enum {JUMP, IDLE, WALK}
+@export var state := JUMP
+var state_frame := 0
+var _old_state := JUMP
+
 # ノード名にプレイヤーIDを設定し、このノードの持ち主をそのプレイヤーIDに。（同期マンの同期元を変更）
 # プレイヤーIDマイナスはBOTとして扱う。
 func _enter_tree() -> void:
@@ -26,34 +35,59 @@ func _enter_tree() -> void:
 		bot = true
 		set_multiplayer_authority(1)
 
-func _ready() -> void:
-	if player_id == multiplayer.get_unique_id(): #自分のキャラか？
-		$Camera.enabled = true
-	else: #ほかのキャラ。
-		$Camera.enabled = false # 他のキャラのカメラは無効。
-		set_physics_process(false) #他のキャラは_physics_processしない。持ち主が実施。
-		#$Hitbox/Shape.disabled = true #他のキャラは当たり判定しない。持ち主が判定。
+func _move_rand_spawn_pos():
+	var randarea = $/root/Main/SpawnArea
+	var rand = randarea.shape.size
+	position.x = randarea.global_position.x + randf_range(-rand.x/2, rand.x/2)
+	position.y = randarea.global_position.y + randf_range(-rand.y/2, rand.y/2)
 
+func _ready() -> void:
+	if multiplayer.is_server():
+		pass
+		
+	elif player_id == multiplayer.get_unique_id(): #自分のキャラか？
+		print("ready:", name, " ", player_id, " ", multiplayer.get_unique_id())
+		$Camera.enabled = true
+		$Camera.position_smoothing_enabled = true
+		velocity = Vector2.ZERO
+		
+		_move_rand_spawn_pos()
+		
+		$PlayerName.text = Scene.get_pre_data("player_name")
+		
+	else: #ほかのキャラ。
+		print("other:", name, " ", player_id, " ", multiplayer.get_unique_id(), lerp_position)
+		velocity = Vector2.ZERO
+		
+		#$Hitbox/Shape.disabled = true #他のキャラは当たり判定しない。持ち主が判定。
+	
+		position = lerp_position
+		
 
 func _physics_process(delta: float) -> void:
-	# Add the gravity.
 	if not is_on_floor():
 		velocity += get_gravity() * delta
+	
+	if player_id == multiplayer.get_unique_id(): #自分のキャラか？
+		var direction := Input.get_axis("ui_left", "ui_right")
+		if direction:
+			velocity.x = direction * SPEED
+			sprite.flip_h = (direction < 0)
+			
+			if is_on_floor():
+				state = WALK
+		else:
+			velocity.x = move_toward(velocity.x, 0, SPEED)
+			if is_on_floor():
+				state = IDLE
 
-	# Handle jump.
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
-
-	# Get the input direction and handle the movement/deceleration.
-	# As good practice, you should replace UI actions with custom gameplay actions.
-	var direction := Input.get_axis("ui_left", "ui_right")
-	if direction:
-		velocity.x = direction * SPEED
-	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-
+		if Input.is_action_just_pressed("ui_accept") and is_on_floor():
+			state = JUMP
+				
 	move_and_slide()
-
+			
+	if player_id == multiplayer.get_unique_id(): #自分のキャラか？
+		lerp_position = position	
 
 # サーバに削除依頼
 func destroy():
@@ -63,27 +97,28 @@ func destroy():
 func _destroy():
 	queue_free()
 
-# サーバにスポーン依頼をする例。
-#static func spawn(_player_id, to_node):
-#	_spawn.rpc(_player_id, to_node)
-
-#@rpc("any_peer")
-#static func _spawn(_player_id, to_node):
-#	# 自分のクラス名を取得
-#	var node = MultiplayerBody2D.new()
-#	node.name = _player_id
-#	to_node.add_child(node)
-
-#func _physics_process(delta) -> void:
-#	move_and_slide()
-
-#var lerp_position : Vector2
-
 func _process(delta) -> void:
-	# 自分以外の位置のなめらか同期の例。　lerp_positionを同期マンで同期する場合。
-	#if player_id != multiplayer.get_unique_id(): 
-	#	position = lerp(position, lerp_position, 0.1)
-	pass
+	if _old_state != state: # state変化時。
+		state_frame = 0
+		match state:
+			JUMP:
+				velocity.y = JUMP_VELOCITY
+				sprite.play("jump")
+			WALK:
+				position = lerp_position # 位置の即同期
+				sprite.play("walk")
+			IDLE:
+				position = lerp_position # 位置の即同期
+				sprite.play("idle")
+				
+	# 自分以外の位置のなめらか同期の例。　lerp_xを同期マンで同期する場合。
+	if player_id != multiplayer.get_unique_id():
+		position.x = lerp(position.x, lerp_position.x, 0.5)
+		if state != JUMP:
+			position.y = lerp(position.y, lerp_position.y, 0.5)
+	
+	_old_state = state
+	state_frame += 1
 
 #func death():
 #	# 破壊された状態にする例

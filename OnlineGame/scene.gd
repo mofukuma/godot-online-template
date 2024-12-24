@@ -20,7 +20,7 @@ func _change_scene(to, send_data, effect):
 			pass
 	pre_data = send_data
 		
-	get_tree().change_scene_to_file(to)
+	get_tree().change_scene_to_file.call_deferred(to)
 	
 	Signals.start_scene.emit.call_deferred(pre_data)
 	

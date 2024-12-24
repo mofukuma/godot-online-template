@@ -1,9 +1,15 @@
-[gd_scene load_steps=4 format=3 uid="uid://4x0bmyddyvsf"]
+[gd_scene load_steps=6 format=3 uid="uid://4x0bmyddyvsf"]
 
 [ext_resource type="Script" path="res://scene/01_main/main.gd" id="1_o8dth"]
-[ext_resource type="Script" path="res://autoload/set_perma.gd" id="2_75gye"]
+[ext_resource type="Script" path="res://scene/01_main/log.gd" id="3_l0b6a"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_oynul"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hjns4"]
+size = Vector2(1180, 135)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1dveg"]
+size = Vector2(1419.52, 158)
 
 [node name="Main" type="Node"]
 script = ExtResource("1_o8dth")
@@ -11,13 +17,28 @@ script = ExtResource("1_o8dth")
 [node name="Players" type="Node2D" parent="."]
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("res://actor/player/multiplayer_body_2d.tscn")
 spawn_path = NodePath("../Players")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_oynul")
 
+[node name="SpawnArea" type="CollisionShape2D" parent="."]
+position = Vector2(583, -95.5)
+shape = SubResource("RectangleShape2D_hjns4")
+
+[node name="Line2D" type="Line2D" parent="."]
+position = Vector2(9.94318, 0)
+scale = Vector2(0.991883, 1)
+points = PackedVector2Array(-123.949, 502, 1305.65, 502)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="Line2D"]
+
+[node name="Shape" type="CollisionShape2D" parent="Line2D/StaticBody2D"]
+position = Vector2(589.845, 568)
+shape = SubResource("RectangleShape2D_1dveg")
+
 [node name="UI" type="CanvasLayer" parent="."]
-script = ExtResource("2_75gye")
 
 [node name="LB" type="Control" parent="UI"]
 layout_mode = 3
@@ -28,7 +49,7 @@ offset_top = -647.0
 offset_right = 1155.0
 grow_vertical = 0
 
-[node name="Log" type="RichTextLabel" parent="UI/LB"]
+[node name="LogWindow" type="RichTextLabel" parent="UI/LB"]
 layout_mode = 2
 anchor_top = 0.983
 anchor_right = 0.006
@@ -37,4 +58,7 @@ offset_left = 7.0
 offset_top = -148.001
 offset_right = 190.07
 offset_bottom = -0.0010376
-text = "ろぐ"
+bbcode_enabled = true
+text = "あ"
+fit_content = true
+script = ExtResource("3_l0b6a")
