@@ -1,0 +1,39 @@
+[gd_scene load_steps=4 format=3 uid="uid://dy8nyqipw0xuu"]
+
+[ext_resource type="Script" path="res://actor/player/multiplayer_body_2d.gd" id="1_05u2t"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p3qwv"]
+size = Vector2(330, 300)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_6tlsl"]
+properties/0/path = NodePath(".:lerp_position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+
+[node name="MultiplayerBody2D" type="CharacterBody2D"]
+scale = Vector2(0.2, 0.2)
+script = ExtResource("1_05u2t")
+
+[node name="Camera" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+
+[node name="PlayerName" type="Label" parent="."]
+offset_left = -215.0
+offset_top = -385.0
+offset_right = 240.0
+offset_bottom = -248.0
+theme_override_colors/font_outline_color = Color(0.298039, 0.298039, 0.478431, 1)
+theme_override_constants/outline_size = 50
+theme_override_font_sizes/font_size = 100
+text = "No Name"
+horizontal_alignment = 1
+
+[node name="Hitbox" type="Area2D" parent="."]
+
+[node name="Shape" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(8.94069e-06, -1.07288e-05)
+scale = Vector2(0.999999, 0.999999)
+shape = SubResource("RectangleShape2D_p3qwv")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_6tlsl")
