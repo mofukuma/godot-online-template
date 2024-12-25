@@ -17,9 +17,8 @@ config/icon="res://assets/misc/icon.svg"
 
 [autoload]
 
-Perma="*res://autoload/perma.tscn"
 Signals="*res://autoload/signals.tscn"
-Scene="*res://autoload/scene.tscn"
+Global="*res://autoload/global.tscn"
 
 [input]
 

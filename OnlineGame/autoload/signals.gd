@@ -4,9 +4,9 @@
  
 extends Node
 
-signal log
+signal log(text) #ログ出す
 
 # シーン制御
 signal end_scene
-signal start_scene(pre_data)
 signal change_scene(to, send_data, effect)
+signal start_scene(pre_data)

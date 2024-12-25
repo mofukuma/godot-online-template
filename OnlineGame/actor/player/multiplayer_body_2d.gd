@@ -9,22 +9,31 @@ extends CharacterBody2D # 他のノードを継承しても良い
 
 class_name MultiplayerBody2D
 
-var player_id := 0
-var bot = false
+# import
+@onready var Scene : Scene = $/root/Global/Scene
+
+var player_id := 0 #peerのID
+var bot = false # botかな？
+var me = false # 自分が操作しているキャラかな？
 
 const SPEED = 300.0
-const JUMP_VELOCITY = -400.0
+const JUMP_VELOCITY = -500.0
 
 @onready var sprite = $Sprite
 
-@export var lerp_position : Vector2
+@export var lerp_position : Vector2 #同期
 
-enum {JUMP, IDLE, WALK}
-@export var state := JUMP
+enum {JUMP, AIR_JUMP, IDLE, WALK, DIE}
+@export var state := IDLE  #同期
 var state_frame := 0
-var _old_state := JUMP
+var old_state := JUMP
 
-# ノード名にプレイヤーIDを設定し、このノードの持ち主をそのプレイヤーIDに。（同期マンの同期元を変更）
+const DOUBLE_JUMP = 2
+var jump_remain = 0
+
+var org_scale: Vector2
+
+# ノード名にプレイヤーIDを設定し、このノードの持ち主(authority)に。
 # プレイヤーIDマイナスはBOTとして扱う。
 func _enter_tree() -> void:
 	player_id = int(str(name))
@@ -34,96 +43,133 @@ func _enter_tree() -> void:
 	else:
 		bot = true
 		set_multiplayer_authority(1)
+	
+	org_scale = scale
 
-func _move_rand_spawn_pos():
-	var randarea = $/root/Main/SpawnArea
+func _move_rand_spawn_pos(randarea):
 	var rand = randarea.shape.size
 	position.x = randarea.global_position.x + randf_range(-rand.x/2, rand.x/2)
 	position.y = randarea.global_position.y + randf_range(-rand.y/2, rand.y/2)
+	lerp_position = position
 
 func _ready() -> void:
+	$Shape.disabled = true #出現してしばらくはあたり判定OFF
+	modulate.a = 0.0#出現してしばらくは見えない
+	
 	if multiplayer.is_server():
 		pass
 		
 	elif player_id == multiplayer.get_unique_id(): #自分のキャラか？
-		print("ready:", name, " ", player_id, " ", multiplayer.get_unique_id())
-		$Camera.enabled = true
-		$Camera.position_smoothing_enabled = true
-		velocity = Vector2.ZERO
+		me = true
 		
-		_move_rand_spawn_pos()
+		$Camera.enabled = true
+		
+		scale = org_scale
+		
+		_move_rand_spawn_pos( $/root/Main/PlayerSpawnArea )
 		
 		$PlayerName.text = Scene.get_pre_data("player_name")
+		$Humi/Shape.disabled = true
+		
+		state = JUMP
 		
 	else: #ほかのキャラ。
-		print("other:", name, " ", player_id, " ", multiplayer.get_unique_id(), lerp_position)
-		velocity = Vector2.ZERO
+		$Humi/Shape.disabled = false
 		
-		#$Hitbox/Shape.disabled = true #他のキャラは当たり判定しない。持ち主が判定。
-	
 		position = lerp_position
-		
+	
+	await get_tree().create_timer(0.3).timeout
+	$Shape.disabled = false #あたり判定　ON
+	$Camera.position_smoothing_enabled = true
+	modulate.a = 1.0
+
 
 func _physics_process(delta: float) -> void:
+	# 同期のポイント　左右はなめらか同期。
+	# 上下、重力やジャンプはvelocityで各クライアントで計算。
+	# ”自分の画面で誰かにやられたとき”にやられたと判定する。
+	
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 	
-	if player_id == multiplayer.get_unique_id(): #自分のキャラか？
+	# 操作関連---------------
+	if me and state != DIE: #自分のキャラだけが操作できる
 		var direction := Input.get_axis("ui_left", "ui_right")
 		if direction:
 			velocity.x = direction * SPEED
 			sprite.flip_h = (direction < 0)
 			
-			if is_on_floor():
+			if is_on_floor() and state_frame > 5: #JUMP直後に着地しないようにstate_frameチェック
 				state = WALK
+				jump_remain = DOUBLE_JUMP
 		else:
 			velocity.x = move_toward(velocity.x, 0, SPEED)
-			if is_on_floor():
+			if is_on_floor() and state_frame > 5:
 				state = IDLE
+				jump_remain = DOUBLE_JUMP
 
-		if Input.is_action_just_pressed("ui_accept") and is_on_floor():
-			state = JUMP
+		if Input.is_action_just_pressed("ui_accept"):
+			if is_on_floor():
+				state = JUMP
+				jump_remain -= 1
+			elif jump_remain > 0:
+				state = AIR_JUMP
+				jump_remain -= 1
 				
 	move_and_slide()
 			
-	if player_id == multiplayer.get_unique_id(): #自分のキャラか？
-		lerp_position = position	
-
-# サーバに削除依頼
-func destroy():
-	_destroy.rpc()
-
-@rpc("any_peer")
-func _destroy():
-	queue_free()
-
+	if me: #自分のキャラなら同期用の変数へセット
+		lerp_position = position
+		
 func _process(delta) -> void:
-	if _old_state != state: # state変化時。
+	if old_state != state: # state変化時
 		state_frame = 0
+		
 		match state:
 			JUMP:
 				velocity.y = JUMP_VELOCITY
 				sprite.play("jump")
+			AIR_JUMP:
+				velocity.y = JUMP_VELOCITY
+				sprite.play("jump")
 			WALK:
-				position = lerp_position # 位置の即同期
+				#position = lerp_position # 位置の即同期
 				sprite.play("walk")
 			IDLE:
-				position = lerp_position # 位置の即同期
 				sprite.play("idle")
+			DIE:
+				scale.y = 0.06
+				
+		position = lerp_position # 位置の即同期
 				
 	# 自分以外の位置のなめらか同期の例。　lerp_xを同期マンで同期する場合。
-	if player_id != multiplayer.get_unique_id():
-		position.x = lerp(position.x, lerp_position.x, 0.5)
-		if state != JUMP:
-			position.y = lerp(position.y, lerp_position.y, 0.5)
+	if not me:
+		position.x = lerp(position.x, lerp_position.x, 0.8)
+		#if state != HASHIGO: #ハシゴとかで同期したいとき
+		#position.y = lerp(position.y, lerp_position.y, 0.8)
 	
-	_old_state = state
+	old_state = state
 	state_frame += 1
 
-#func death():
-#	# 破壊された状態にする例
-#	set_physics_process(false) #入力不可
-#	$hitbox/shape.disabled = true #当たり判定無効化
-#	$area/shape.disabled = true #当たり判定無効化
-#	set_multiplayer_authority(1) #所有権をサーバに戻す
-#	modulate.a = 0.0 #透明
+# 破壊された状態にする
+func death():
+	state = DIE
+	$Camera.position_smoothing_enabled = false
+	modulate.a = 0.1
+	await get_tree().create_timer(0).timeout
+	$TakeItemArea/Shape.disabled = true
+	
+	await get_tree().create_timer(2.0).timeout
+	_ready()
+	$TakeItemArea/Shape.disabled = false
+
+# 誰かに踏まれた
+func _on_humi_body_entered(body: Node2D) -> void:
+	if body == self:
+		return
+	if body is MultiplayerBody2D:
+		if body.me and body.state != DIE: # 踏まれたのが自分のときだけ処理。
+			body.death()
+			$/root/Main.add_expball.rpc(body.global_position)
+			#self.scale += body.scale * 0.5 #踏んだらでかくなる
+		

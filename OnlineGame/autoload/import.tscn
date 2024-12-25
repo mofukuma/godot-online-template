@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://shwwpuyenum8"]
-
-[ext_resource type="Script" path="res://autoload/import.gd" id="1_htkyj"]
-
-[node name="Import" type="Node"]
-script = ExtResource("1_htkyj")

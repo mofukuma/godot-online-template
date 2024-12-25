@@ -1,10 +1,10 @@
-[gd_scene load_steps=21 format=3 uid="uid://dy8nyqipw0xuu"]
+[gd_scene load_steps=22 format=3 uid="uid://dy8nyqipw0xuu"]
 
 [ext_resource type="Script" path="res://actor/player/multiplayer_body_2d.gd" id="1_05u2t"]
 [ext_resource type="Texture2D" uid="uid://b07j6h26cteyv" path="res://actor/player/godou-san-dot.png" id="2_d053h"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_p3qwv"]
-size = Vector2(330, 300)
+size = Vector2(235, 18.7501)
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_6tlsl"]
 properties/0/path = NodePath(".:state")
@@ -19,6 +19,15 @@ properties/2/replication_mode = 1
 properties/3/path = NodePath("PlayerName:text")
 properties/3/spawn = true
 properties/3/replication_mode = 1
+properties/4/path = NodePath(".:scale")
+properties/4/spawn = true
+properties/4/replication_mode = 1
+properties/5/path = NodePath(".:modulate")
+properties/5/spawn = true
+properties/5/replication_mode = 1
+properties/6/path = NodePath("Shape:disabled")
+properties/6/spawn = true
+properties/6/replication_mode = 1
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yoben"]
 atlas = ExtResource("2_d053h")
@@ -149,7 +158,11 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_leb4r"]
 size = Vector2(320, 295)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_tx3ib"]
+radius = 275.0
+
 [node name="MultiplayerBody2D" type="CharacterBody2D"]
+position = Vector2(0, -33)
 scale = Vector2(0.2, 0.2)
 script = ExtResource("1_05u2t")
 
@@ -166,11 +179,12 @@ theme_override_constants/outline_size = 50
 theme_override_font_sizes/font_size = 71
 text = "No Name"
 horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
 
-[node name="Hitbox" type="Area2D" parent="."]
+[node name="Humi" type="Area2D" parent="."]
 
-[node name="Shape" type="CollisionShape2D" parent="Hitbox"]
-position = Vector2(8.94069e-06, -1.07288e-05)
+[node name="Shape" type="CollisionShape2D" parent="Humi"]
+position = Vector2(5, 200)
 scale = Vector2(0.999999, 0.999999)
 shape = SubResource("RectangleShape2D_p3qwv")
 
@@ -187,5 +201,12 @@ frame_progress = 0.691888
 
 [node name="Shape" type="CollisionShape2D" parent="."]
 position = Vector2(5.00002, 2.50002)
-scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_leb4r")
+disabled = true
+
+[node name="TakeItemArea" type="Area2D" parent="."]
+
+[node name="Shape" type="CollisionShape2D" parent="TakeItemArea"]
+shape = SubResource("CircleShape2D_tx3ib")
+
+[connection signal="body_entered" from="Humi" to="." method="_on_humi_body_entered"]
