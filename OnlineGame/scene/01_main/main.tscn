@@ -1,19 +1,18 @@
-[gd_scene load_steps=10 format=3 uid="uid://4x0bmyddyvsf"]
+[gd_scene load_steps=9 format=3 uid="uid://4x0bmyddyvsf"]
 
 [ext_resource type="Script" path="res://scene/01_main/main.gd" id="1_o8dth"]
-[ext_resource type="Script" path="res://autoload/set_global.gd" id="2_aelb2"]
+[ext_resource type="Script" path="res://autoload/importer.gd" id="2_wi541"]
 [ext_resource type="Script" path="res://scene/01_main/log.gd" id="3_l0b6a"]
 [ext_resource type="Script" path="res://modules/save_man.gd" id="4_ngydi"]
-[ext_resource type="Script" path="res://modules/scene.gd" id="5_arihv"]
 [ext_resource type="Script" path="res://modules/net.gd" id="6_8bieg"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_oynul"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hjns4"]
-size = Vector2(489, 135)
+size = Vector2(5285.5, 135)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1dveg"]
-size = Vector2(1419.52, 158)
+size = Vector2(11352, 158)
 
 [node name="Main" type="Node"]
 script = ExtResource("1_o8dth")
@@ -30,26 +29,37 @@ spawn_path = NodePath("../Players")
 replication_config = SubResource("SceneReplicationConfig_oynul")
 
 [node name="PlayerSpawnArea" type="CollisionShape2D" parent="."]
-position = Vector2(577, -98)
+position = Vector2(2392.25, -802)
 shape = SubResource("RectangleShape2D_hjns4")
 
-[node name="Line2D" type="Line2D" parent="."]
-position = Vector2(-2241.78, 24.5986)
+[node name="Ground" type="Node2D" parent="."]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="Ground"]
+position = Vector2(-2240, -464)
+collision_layer = 2049
+collision_mask = 2049
+
+[node name="Shape" type="CollisionShape2D" parent="Ground/StaticBody2D"]
+position = Vector2(4692, 548.789)
+shape = SubResource("RectangleShape2D_1dveg")
+
+[node name="Line2D" type="Line2D" parent="Ground"]
+position = Vector2(-2241.78, -465)
 scale = Vector2(7.94496, 0.950003)
 points = PackedVector2Array(-123.949, 502, 1305.65, 502)
 
-[node name="StaticBody2D" type="StaticBody2D" parent="Line2D"]
+[node name="Importer" type="Node" parent="."]
+script = ExtResource("2_wi541")
 
-[node name="Shape" type="CollisionShape2D" parent="Line2D/StaticBody2D"]
-position = Vector2(589.277, 567.789)
-shape = SubResource("RectangleShape2D_1dveg")
+[node name="Net" type="Node" parent="Importer"]
+script = ExtResource("6_8bieg")
 
-[node name="Global" type="Node" parent="."]
-script = ExtResource("2_aelb2")
+[node name="SaveMan" type="Node" parent="Importer"]
+script = ExtResource("4_ngydi")
 
-[node name="UI" type="CanvasLayer" parent="Global"]
+[node name="UI" type="CanvasLayer" parent="Importer"]
 
-[node name="LB" type="Control" parent="Global/UI"]
+[node name="LB" type="Control" parent="Importer/UI"]
 layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
@@ -58,7 +68,7 @@ offset_top = -647.0
 offset_right = 1155.0
 grow_vertical = 0
 
-[node name="LogWindow" type="RichTextLabel" parent="Global/UI/LB"]
+[node name="LogWindow" type="RichTextLabel" parent="Importer/UI/LB"]
 layout_mode = 2
 anchor_top = 0.983
 anchor_right = 0.006
@@ -71,12 +81,3 @@ bbcode_enabled = true
 text = "あ"
 fit_content = true
 script = ExtResource("3_l0b6a")
-
-[node name="SaveMan" type="Node" parent="Global"]
-script = ExtResource("4_ngydi")
-
-[node name="Scene" type="Node" parent="Global"]
-script = ExtResource("5_arihv")
-
-[node name="Net" type="Node" parent="Global"]
-script = ExtResource("6_8bieg")

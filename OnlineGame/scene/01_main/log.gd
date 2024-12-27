@@ -2,13 +2,15 @@ extends RichTextLabel
 
 # signalで受け取ったメッセージログを表示する
 
+@onready var Net : Net = $/root/Import/Net
+
 var log_text : Array = []
 var show_remain := 0.0
 const SHOW_MAX = 3
 const LOG_MAX = 50
 
 func _ready() -> void:
-	Signals.log.connect(print_log)
+	#Net.on_message.connect(print_log) # メッセージ発生イベントに接続
 	self.text = ""
 
 func _process(delta: float) -> void:

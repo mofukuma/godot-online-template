@@ -1,56 +1,72 @@
 [gd_scene load_steps=9 format=3 uid="uid://c1f40j653r7vf"]
 
+[ext_resource type="Script" path="res://autoload/importer.gd" id="1_bem7f"]
 [ext_resource type="Shader" path="res://assets/shader/blur.gdshader" id="1_ksocu"]
 [ext_resource type="Script" path="res://scene/00_title/title.gd" id="1_oy53t"]
 [ext_resource type="Texture2D" uid="uid://dk0mpmm14vmw6" path="res://scene/00_title/start_button.png" id="2_ma6kq"]
+[ext_resource type="AudioStream" uid="uid://cgtrugwam43pm" path="res://assets/bgm/PrettySky.ogg" id="2_xia3v"]
 [ext_resource type="Texture2D" uid="uid://cfx1gi7c37ho1" path="res://scene/00_title/namebar.png" id="3_3lehp"]
-[ext_resource type="Script" path="res://autoload/set_global.gd" id="5_dry8g"]
-[ext_resource type="Script" path="res://modules/scene.gd" id="6_umggd"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_e7y1e"]
 shader = ExtResource("1_ksocu")
-shader_parameter/blur = 2.0
+shader_parameter/blur = 2.01
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_4rqbn"]
 texture = ExtResource("3_3lehp")
 
-[node name="Title" type="CanvasLayer"]
+[node name="Title" type="Node"]
+
+[node name="Importer" type="Node" parent="."]
+script = ExtResource("1_bem7f")
+
+[node name="UI" type="CanvasLayer" parent="Importer"]
+
+[node name="Title" type="Control" parent="Importer/UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_oy53t")
 
-[node name="Blur" type="ColorRect" parent="."]
+[node name="Blur" type="ColorRect" parent="Importer/UI/Title"]
 material = SubResource("ShaderMaterial_e7y1e")
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Start" type="TextureButton" parent="."]
+[node name="Start" type="TextureButton" parent="Importer/UI/Title"]
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -156.0
-offset_top = 203.0
-offset_right = 157.0
-offset_bottom = 283.0
+offset_left = -158.0
+offset_top = 173.0
+offset_right = 155.0
+offset_bottom = 253.0
 grow_horizontal = 2
 grow_vertical = 2
 texture_normal = ExtResource("2_ma6kq")
 ignore_texture_size = true
 stretch_mode = 0
 
-[node name="EnterName" type="LineEdit" parent="."]
+[node name="EnterName" type="LineEdit" parent="Importer/UI/Title"]
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -283.0
-offset_top = 27.0
-offset_right = 283.0
-offset_bottom = 98.0
+offset_left = -285.0
+offset_top = -3.0
+offset_right = 281.0
+offset_bottom = 68.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 40
@@ -58,18 +74,36 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_4rqbn")
 placeholder_text = "Enter your name..."
 alignment = 1
 
-[node name="Room" type="Button" parent="."]
+[node name="Room" type="Button" parent="Importer/UI/Title"]
+layout_mode = 0
 offset_left = 17.0
 offset_top = 16.0
-offset_right = 75.0
+offset_right = 105.0
 offset_bottom = 47.0
 text = "部屋をつくる"
 
-[node name="Global" type="Node" parent="."]
-script = ExtResource("5_dry8g")
+[node name="RichTextLabel" type="RichTextLabel" parent="Importer/UI/Title"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -464.0
+offset_top = -209.0
+offset_right = 491.0
+offset_bottom = -55.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/normal_font_size = 80
+bbcode_enabled = true
+text = "[center][wave amp=50 freq=10]ふみふみ巨人バトル[/wave][/center]"
 
-[node name="Scene" type="Node" parent="Global"]
-script = ExtResource("6_umggd")
+[node name="PrettySky" type="AudioStreamPlayer" parent="Importer"]
+stream = ExtResource("2_xia3v")
+volume_db = -19.935
+autoplay = true
+parameters/looping = true
 
-[connection signal="pressed" from="Start" to="." method="_on_start_pressed"]
-[connection signal="pressed" from="Room" to="." method="_on_room_pressed"]
+[connection signal="pressed" from="Importer/UI/Title/Start" to="Importer/UI/Title" method="_on_start_pressed"]
+[connection signal="pressed" from="Importer/UI/Title/Room" to="Importer/UI/Title" method="_on_room_pressed"]

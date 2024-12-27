@@ -1,21 +1,25 @@
-#
-# シーン切り替えマン
-#
+# シーン切り替えマン　
+# 自動読み込みにいれろ
 
 extends Node
-class_name Scene
 
 var pre_data :Dictionary # 前のシーンが残したデータ
 var pre_scene = "" #前のシーン
 
+# シーン制御用
+signal on_end_scene()
+signal on_change_scene(to, send_data, effect)
+signal on_start_scene(pre_data)
+
 func _ready() -> void:
-	Signals.change_scene.connect(_change_scene)
+	pass
 
 # シーンを切り替え。データの受け渡しと切り替えトランジション。
-func _change_scene(to, send_data, effect):
+func change_scene(to, send_data, effect):
 	print("change scene: "+ pre_scene +" -> "+ to)
 	
-	Signals.end_scene.emit()
+	on_end_scene.emit()
+	on_change_scene.emit(to, send_data, effect)
 	
 	match effect: # 切り替えトランジションはここに書け
 		"no effect":
@@ -25,7 +29,7 @@ func _change_scene(to, send_data, effect):
 	
 	await get_tree().create_timer(0).timeout
 
-	Signals.start_scene.emit(pre_data)
+	on_start_scene.emit(pre_data)
 	
 	pre_scene = to
 	

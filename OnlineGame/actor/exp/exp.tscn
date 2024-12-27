@@ -1,21 +1,25 @@
-[gd_scene load_steps=4 format=3 uid="uid://cj71jrc87trji"]
+[gd_scene load_steps=5 format=3 uid="uid://cj71jrc87trji"]
 
 [ext_resource type="Script" path="res://actor/exp/exp.gd" id="1_b36s7"]
 [ext_resource type="Texture2D" uid="uid://cytvi5kcek14t" path="res://actor/exp/exp.png" id="1_mlhfv"]
+[ext_resource type="AudioStream" uid="uid://met57gidpm68" path="res://actor/player/exp_get.ogg" id="2_jw5dl"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_5jed5"]
-radius = 13.0384
+radius = 30.0167
 
-[node name="exp" type="Node2D"]
+[node name="Exp" type="Area2D"]
+collision_layer = 2048
+collision_mask = 2048
 script = ExtResource("1_b36s7")
 
-[node name="sprite" type="Sprite2D" parent="."]
+[node name="ExpGet" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_jw5dl")
+volume_db = -15.053
+
+[node name="Sprite" type="Sprite2D" parent="."]
 scale = Vector2(0.05, 0.05)
 texture = ExtResource("1_mlhfv")
 
-[node name="area" type="Area2D" parent="."]
-collision_layer = 8
-collision_mask = 0
-
-[node name="shape" type="CollisionShape2D" parent="area"]
+[node name="Shape" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_5jed5")
+disabled = true

@@ -1,16 +1,15 @@
 extends Node
 
 # import
-@onready var Scene : Scene = $/root/Global/Scene
-@onready var Net : Net = $/root/Global/Net
+@onready var Net : Net = $/root/Import/Net
 
 var player_name = ""
 var player_pr = preload("res://actor/player/multiplayer_body_2d.tscn")
-
 var exp_pr = preload("res://actor/exp/exp.tscn")
 
 func _ready() -> void:
-	Signals.start_scene.connect(_on_start_scene)
+	Scene.on_start_scene.connect(_on_start_scene)
+	pop_exp()
 	
 func _on_start_scene(pre_data):
 	print("start main:", pre_data)
@@ -26,7 +25,7 @@ func _on_start_scene(pre_data):
 	else:
 		await Net.start_client()
 		player_spawn.rpc()
-		Net.message.rpc(player_name+"が参加したよ。")
+		Net.message(player_name+"が参加したよ。")
 	
 # 誰か来た。
 func _on_new_player(player_id):
@@ -39,6 +38,17 @@ func _on_exit_player(player_id):
 	var player_name = exit_player.get_node("PlayerName").text
 	exit_player.queue_free()
 	Net.message(player_name+"、またね。")
+
+# 経験値玉がわく
+func pop_exp():
+	while true:
+		if $Exps.get_child_count() < 100:
+			var b = exp_pr.instantiate()
+			var area = $Ground/StaticBody2D/Shape
+			var rand = area.shape.size
+			b.init(area.global_position + Vector2(randf_range(-rand.x/2, rand.x/2), randf_range(-rand.y/2, rand.y/2) - rand.y) ,Vector2(0.0, 0.3))
+			$Exps.add_child(b)
+		await get_tree().create_timer(1.0).timeout
 
 # プレイヤーを追加する。
 @rpc("any_peer")
@@ -54,20 +64,3 @@ func bot_spawn():
 	var node = player_pr.instantiate()
 	node.name = str(bot_n) # player_idマイナスならBOT
 	bot_n -= 1
-
-@rpc("any_peer")
-func add_expball(pos):
-	for p in multiplayer.get_peers(): # 全員にお願いするときの書き方。
-		_add_expball.rpc_id(p, pos)
-
-@rpc("any_peer")
-func _add_expball(pos):
-	for i in range(50):
-		var b = exp_pr.instantiate()
-		b.global_position = pos
-		var rand = Vector2( randf_range(-100, 100), randf_range(-100, 0))
-		b.move(pos+rand)
-		$Exps.add_child(b)
-		
-		
-		

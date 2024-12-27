@@ -1,10 +1,13 @@
-[gd_scene load_steps=22 format=3 uid="uid://dy8nyqipw0xuu"]
+[gd_scene load_steps=24 format=3 uid="uid://dy8nyqipw0xuu"]
 
 [ext_resource type="Script" path="res://actor/player/multiplayer_body_2d.gd" id="1_05u2t"]
+[ext_resource type="AudioStream" uid="uid://dymdni20xflj3" path="res://actor/player/tank_break.ogg" id="2_bnsll"]
 [ext_resource type="Texture2D" uid="uid://b07j6h26cteyv" path="res://actor/player/godou-san-dot.png" id="2_d053h"]
+[ext_resource type="AudioStream" uid="uid://met57gidpm68" path="res://actor/player/exp_get.ogg" id="2_flabh"]
+[ext_resource type="AudioStream" uid="uid://cidt8r8by0gok" path="res://actor/player/Jump.ogg" id="3_b4ya7"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_p3qwv"]
-size = Vector2(235, 18.7501)
+size = Vector2(95.0001, 59.3751)
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_6tlsl"]
 properties/0/path = NodePath(".:state")
@@ -155,18 +158,26 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_leb4r"]
-size = Vector2(320, 295)
-
 [sub_resource type="CircleShape2D" id="CircleShape2D_tx3ib"]
-radius = 275.0
+radius = 160.078
 
 [node name="MultiplayerBody2D" type="CharacterBody2D"]
 position = Vector2(0, -33)
 scale = Vector2(0.2, 0.2)
 script = ExtResource("1_05u2t")
 
+[node name="ExpGet" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_flabh")
+
+[node name="TankBreak" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_bnsll")
+volume_db = -7.526
+
+[node name="Jump" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_b4ya7")
+
 [node name="Camera" type="Camera2D" parent="."]
+offset = Vector2(0, -100)
 enabled = false
 
 [node name="PlayerName" type="Label" parent="."]
@@ -184,7 +195,7 @@ metadata/_edit_use_anchors_ = true
 [node name="Humi" type="Area2D" parent="."]
 
 [node name="Shape" type="CollisionShape2D" parent="Humi"]
-position = Vector2(5, 200)
+position = Vector2(-2.5, 179.687)
 scale = Vector2(0.999999, 0.999999)
 shape = SubResource("RectangleShape2D_p3qwv")
 
@@ -199,14 +210,15 @@ sprite_frames = SubResource("SpriteFrames_o7hsk")
 animation = &"jump"
 frame_progress = 0.691888
 
-[node name="Shape" type="CollisionShape2D" parent="."]
-position = Vector2(5.00002, 2.50002)
-shape = SubResource("RectangleShape2D_leb4r")
-disabled = true
-
 [node name="TakeItemArea" type="Area2D" parent="."]
+collision_layer = 2048
+collision_mask = 2048
 
 [node name="Shape" type="CollisionShape2D" parent="TakeItemArea"]
 shape = SubResource("CircleShape2D_tx3ib")
 
+[node name="Shape" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(45, 145, -45, 145, -65, 100, -80, 60, -170, -25, -170, -60, -150, -60, -150, -120, -125, -120, -125, -160, 155, -160, 155, -95, 175, -95, 175, -60, 135, -60, 75, 65)
+
 [connection signal="body_entered" from="Humi" to="." method="_on_humi_body_entered"]
+[connection signal="area_entered" from="TakeItemArea" to="." method="_on_take_item_area_area_entered"]
