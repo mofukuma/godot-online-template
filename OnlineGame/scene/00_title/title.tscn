@@ -99,7 +99,9 @@ theme_override_font_sizes/normal_font_size = 80
 bbcode_enabled = true
 text = "[center][wave amp=50 freq=10]ふみふみ巨人バトル[/wave][/center]"
 
-[node name="PrettySky" type="AudioStreamPlayer" parent="Importer"]
+[node name="BGM" type="Node" parent="Importer"]
+
+[node name="PrettySky" type="AudioStreamPlayer" parent="Importer/BGM"]
 stream = ExtResource("2_xia3v")
 volume_db = -19.935
 autoplay = true

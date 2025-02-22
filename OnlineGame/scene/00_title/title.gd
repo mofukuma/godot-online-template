@@ -8,7 +8,6 @@ func _ready() -> void:
 	if '--server' in args: 
 		print("**server mode**")
 		_on_room_pressed()
-		
 	
 	Signals.game_over.connect(_game_over)
 
@@ -44,4 +43,5 @@ func _on_start_pressed():
 	
 # サーバになる
 func _on_room_pressed():
+	$/root/Import/UI/Title.hide()
 	Scene.change_scene("res://scene/01_main/main.tscn", {"player_name": "server", "mode": "server"}, "no effect")

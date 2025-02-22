@@ -160,7 +160,7 @@ func _process(delta) -> void:
 				velocity = Vector2.ZERO
 				scale.y = 0.02
 				
-				# 経験値玉まきちらし（経験値玉の位置は同期しません。こういう設計も重要です）
+				# 経験値玉まきちらし（経験値玉の位置は同期しません）
 				var ball_n : int = scale.x * 30
 				for i in range(ball_n):
 					var ball = exp_pr.instantiate()
@@ -169,7 +169,6 @@ func _process(delta) -> void:
 		
 		position = lerp_position # stateが変化したとき位置の即同期
 	# ------------
-				
 	# 自分以外の位置のなめらか同期の例。
 	if not me:
 		position.x = lerp(position.x, lerp_position.x, 0.8)
@@ -200,19 +199,19 @@ func death():
 	_ready()
 	$TakeItemArea/Shape.disabled = false
 
-
 # 誰かをふんだぞ
 func _on_humi_body_entered(body: Node2D) -> void:
 	if body == self or not me or state == DIE:
 		return
+		
 	if body is MultiplayerBody2D:
 		if me and body.state != DIE: # 自分のときだけ処理。
 			body.death.rpc_id(body.player_id) # 相手を破壊された状態にするようにお願い
 			Net.message(body.get_node("PlayerName").text +"が、" + $PlayerName.text+"に踏まれた！" )
 			await get_tree().create_timer(0).timeout
-			$Humi/Shape.disabled = false #踏みディレイ
-			await get_tree().create_timer(0.3).timeout
 			$Humi/Shape.disabled = true
+			await get_tree().create_timer(0.3).timeout
+			$Humi/Shape.disabled = false #踏みディレイ
 
 # アイテムとった
 func _on_take_item_area_area_entered(area: Area2D) -> void:
